@@ -5,10 +5,11 @@ import (
 
 	"time"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/go-sql-driver/mysql" // mysql driver
 	"github.com/jmoiron/sqlx"
 )
 
+// Missed структра содержащая информацию о звонке
 type Missed struct {
 	uid   string `db:"uniqueid"`
 	src   string `db:"src"`
@@ -47,11 +48,12 @@ func Load(conf string) []Missed {
 	return result
 }
 
+// noncontain не содержится в слайсе
 func notcontain(lst []string, item string) bool {
 	for _, it := range lst {
 		if it == item {
 			return false
 		}
-		return true
 	}
+	return true
 }
