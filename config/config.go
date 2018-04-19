@@ -1,6 +1,7 @@
 package config
 
 import (
+	"encoding/json"
 	"io/ioutil"
 	"log"
 )
@@ -9,6 +10,12 @@ type Config struct {
 	token    string `json:"token"`
 	dbconfig string `json:"db_config"`
 	dids     []Did  `json:"did_numbers"`
+	smsurl   SMSUrl `json:"smsurl"`
+}
+
+type SMSUrl struct {
+	Type string `json:"type"`
+	Url  string `json:"url"`
 }
 
 type User struct {
@@ -23,15 +30,6 @@ type Did struct {
 	users  []User `json:"users"`
 }
 
-// UnmarshalJSON преобразовывает из json в свой тип Did
-func (d *Did) UnmarshalJSON(data []byte) error {}
-
-// UnmarshalJSON преобразовывает из json в свой тип User
-func (u *User) UnmarshalJSON(data []byte) error {}
-
-// UnmarshalJSON преобразовывает из json в свой тип Config
-func (c *Config) UnmarshalJSON(data []byte) error {}
-
 // GetConfig открывает указанный файл и загружает конфиг
 // удобном для себя формате
 func GetConfig(configFile string) *Config {
@@ -41,6 +39,9 @@ func GetConfig(configFile string) *Config {
 		log.Println(err.Error())
 		return result
 	}
-	result.UnmarshalJSON(conf)
+	err = json.UnmarshalJSON(conf, result)
+	if err != nil {
+		log.Println(err.Error())
+	}
 	return result
 }
