@@ -1,55 +1,25 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
-	"net/http"
-	"net/url"
-	"strings"
-	"time"
-
+	"log"
 	"os"
 
-	"gopkg.in/telegram-bot-api.v4"
+	"github.com/Ravillatypov/missedcall/asterisk"
+	"github.com/Ravillatypov/missedcall/config"
+	"github.com/Ravillatypov/missedcall/notification"
 )
 
 func main() {
-	today := time.Now()
-	date := ""
-	logfilename := "C:/Program Files (x86)/Cobian Backup 11/Logs/log "
-	if today.Month() < 10 {
-		date = fmt.Sprintf("%d-0%d-%d", today.Year(), today.Month(), today.Day())
-	} else {
-		date = fmt.Sprintf("%d-%d-%d", today.Year(), today.Month(), today.Day())
-	}
-	logfilename += date + ".txt"
-	fmt.Println(logfilename)
-	fmt.Println(strings.Join(os.Args[1:], " "))
-	bytes, err := ioutil.ReadFile(logfilename)
+	cfg, err := config.GetConfig(os.Args[1])
 	if err != nil {
-		fmt.Println("can't open file")
+		log.Panicln(err.Error())
 		return
 	}
-	errors := ""
-	logfile := strings.Split(string(bytes), "\n")
-	for _, line := range logfile {
-		if strings.HasPrefix(line, "ERR") {
-			errors += "\n" + line
-		}
-	}
-	errors = strings.Trim(errors, date)
-	errors = strings.Trim(errors, "ERR")
-	proxyUrl, err := url.Parse("socks5://suz.iqvision.pro:9988")
-	myClient := &http.Client{Transport: &http.Transport{Proxy: http.ProxyURL(proxyUrl)}}
-	bot, err := tgbotapi.NewBotAPIWithClient("382966119:AAGtrvgdGNtjPo0C4gCdsXwqLBO-98QXtsI", myClient)
+	missedcalls := asterisk.Load(cfg.Dbconfig)
+	notify, err := notification.Init(cfg.Token, cfg.Proxy, "звонок от {}", &cfg.Smsurl)
 	if err != nil {
-		fmt.Println("can't authorize")
+		log.Panic(err.Error())
 	}
-	msg := tgbotapi.NewMessage(-221172754, strings.Join(os.Args[2:], " "))
-	if len(errors) > 0 {
-		msg.Text += errors
-	} else {
-		msg.Text += "Бекап сделан без ошибок"
-	}
-	bot.Send(msg)
+	notify.SendSMS(missedcalls, cfg.Dids)
+	notify.SendTG(missedcalls, cfg.Dids)
 }

@@ -5,10 +5,11 @@ import (
 	"net/http"
 	"net/url"
 
+	"fmt"
+
 	"github.com/Ravillatypov/missedcall/asterisk"
 	"github.com/Ravillatypov/missedcall/config"
 	"gopkg.in/telegram-bot-api.v4"
-	"fmt"
 )
 
 type Notify struct {
@@ -33,15 +34,30 @@ func Init(token, proxy, sms string, smsurl *config.SMSUrl) (*Notify, error) {
 	return &Notify{client: httpClient, bot: bot, smsurl: smsurl, sms: sms}, nil
 }
 
-func (n *Notify) SendSMS(calls []asterisk.Missed, dids []config.Did) error {
+func (n *Notify) SendSMS(calls []asterisk.Missed, dids []config.Did) {
 	for _, call := range calls {
 		for _, did := range dids {
 			if call.Did == did.Number {
-				for _,user := range did.Users{
-					if user.Phone != ""{
-						msg := fmt.Sprintf(n.sms, user.Phone, call.Src)
-						request := &url.URL{Path: fmt.Sprintf{n.smsurl.Url, msg)}
+				for _, user := range did.Users {
+					if user.Phone != "" {
+						msg := fmt.Sprintf(n.sms, call.Src)
+						request := &url.URL{Path: fmt.Sprintf(n.smsurl.Url, msg, user.Phone)}
 						n.client.Get(request.String())
+					}
+				}
+			}
+		}
+	}
+}
+
+func (n *Notify) SendTG(calls []asterisk.Missed, dids []config.Did) {
+	for _, call := range calls {
+		for _, did := range dids {
+			if call.Did == did.Number {
+				for _, user := range did.Users {
+					if user.Tgid != 0 {
+						msg := tgbotapi.NewMessage(user.Tgid, fmt.Sprintf(n.sms, call.Src))
+						n.bot.Send(msg)
 					}
 				}
 			}

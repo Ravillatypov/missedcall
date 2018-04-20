@@ -10,11 +10,11 @@ import (
 // информацию для подключения к базе, какие номера
 // надо мониторить, как отправить sms и кому отправит
 type Config struct {
-	token    string `json:"token"`
-	dbconfig string `json:"db_config"`
-	dids     []Did  `json:"did_numbers"`
-	smsurl   SMSUrl `json:"smsurl"`
-	proxy    string `json:"proxy"`
+	Token    string `json:"token"`
+	Dbconfig string `json:"db_config"`
+	Dids     []Did  `json:"did_numbers"`
+	Smsurl   SMSUrl `json:"smsurl"`
+	Proxy    string `json:"proxy"`
 }
 
 // SMSUrl содержит url и каким методом надо вызывать (GET, POST)
@@ -25,7 +25,7 @@ type SMSUrl struct {
 
 // User Информация о получателе уведомления
 type User struct {
-	name       string `json:"name"`
+	Name       string `json:"name"`
 	Phone      string `json:"phone"`
 	Tgusername string `json:"tg_username"`
 	Tgid       int64  `json:"tg_id"`
