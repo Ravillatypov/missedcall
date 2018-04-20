@@ -12,9 +12,9 @@ import (
 // Missed структра содержащая информацию о звонке
 type Missed struct {
 	uid   string `db:"uniqueid"`
-	src   string `db:"src"`
+	Src   string `db:"src"`
 	dst   string `db:"dst"`
-	did   string `db:"did"`
+	Did   string `db:"did"`
 	staus string `db:"disposition"`
 }
 

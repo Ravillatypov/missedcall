@@ -26,16 +26,16 @@ type SMSUrl struct {
 // User Информация о получателе уведомления
 type User struct {
 	name       string `json:"name"`
-	phone      string `json:"phone"`
-	tgusername string `json:"tg_username"`
-	tgid       int64  `json:"tg_id"`
+	Phone      string `json:"phone"`
+	Tgusername string `json:"tg_username"`
+	Tgid       int64  `json:"tg_id"`
 }
 
 // Did триггер, при вызове этого номера отправляются
 // уведомления указанным пользователям
 type Did struct {
-	number string `json:"number"`
-	users  []User `json:"users"`
+	Number string `json:"number"`
+	Users  []User `json:"users"`
 }
 
 // GetConfig открывает указанный файл и загружает конфиг
