@@ -1,0 +1,14 @@
+{
+	"token": "telegram token", 
+	"db_config": "root@/asteriskcdr", 
+	"smsurl": {"url" : "http://smscemtr.com/?u=admin&p=admin&l=1&n={}&m={}", "type" : "GET"}, 
+	"proxy": "socks5://mysocks5.org:1080", 
+	"did_numbers":[
+		{
+		"number": "78912345678", 
+		"users":[
+			{"name": "Ravil", "phone": "89123123123", "tg_username": "Ravil_Latypov", "tg_id": 2233452345}
+			]
+		}
+    ]
+}

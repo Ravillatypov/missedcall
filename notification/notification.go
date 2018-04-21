@@ -39,10 +39,10 @@ func (n *Notify) SendSMS(calls []asterisk.Missed, dids []config.Did) {
 		for _, did := range dids {
 			if call.Did == did.Number {
 				for _, user := range did.Users {
-					if user.Phone != "" {
+					if len(user.Phone) == 11 {
 						msg := fmt.Sprintf(n.sms, call.Src)
-						request := &url.URL{Path: fmt.Sprintf(n.smsurl.Url, msg, user.Phone)}
-						n.client.Get(request.String())
+						request := &url.URL{Path: fmt.Sprintf(n.smsurl.Url, user.Phone, msg)}
+						http.Get(request.String())
 					}
 				}
 			}
