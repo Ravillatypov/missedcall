@@ -1,12 +1,13 @@
 package asterisk
 
 import (
+	"database/sql"
+	"fmt"
 	"log"
 
 	"time"
 
 	_ "github.com/go-sql-driver/mysql" // mysql driver
-	"github.com/jmoiron/sqlx"
 )
 
 // Missed структра содержащая информацию о звонке
@@ -19,32 +20,44 @@ type Missed struct {
 }
 
 // Load подключается к базе и загружает информацию по
-// пропущенным звонкам звонкам
-func Load(conf string) []Missed {
+// пропущенным звонкам
+func Load(conf string, sec int64) []Missed {
 	log.Println("Load", conf)
-	result := []Missed{}
-	tmp := []Missed{}
-	db, err := sqlx.Open("mysql", conf)
+	result := make([]Missed, 0)
+	db, err := sql.Open("mysql", conf)
 	if err != nil {
 		log.Println(err.Error())
 		return result
 	}
 	now := time.Now()
 	log.Println("now =", now)
-	minuteago := now.Add(time.Duration(-60000000000))
+	minuteago := now.Add(time.Duration(sec * 1000000000))
 	log.Println("minuteago =", minuteago)
-	db.Select(&tmp, "SELECT src,dst,did,uniqueid,disposition FROM cdr WHERE calldate > $1 AND did != '' order by disposition DESC", minuteago)
+	query := fmt.Sprintf("SELECT uniqueid,src,dst,did,disposition FROM cdr WHERE calldate > '%s' AND did != ''", minuteago.Format("2006-01-02 15:04:05"))
+	log.Println(query)
 	answeredid := []string{}
 	addedid := []string{}
-	for _, call := range tmp {
-		if call.staus == "ANSWERED" {
-			answeredid = append(answeredid, call.uid)
-		}
+	rows, err := db.Query(query)
+	if err != nil {
+		log.Println(err.Error())
+		return []Missed{}
 	}
-	for _, call := range tmp {
-		if notcontain(answeredid, call.uid) && notcontain(addedid, call.uid) {
-			addedid = append(addedid, call.uid)
-			result = append(result, call)
+	for rows.Next() {
+		var (
+			uid, src, dst, did, status string
+		)
+		err := rows.Scan(&uid, &src, &dst, &did, &status)
+		if err != nil {
+			log.Println(err.Error())
+		}
+		log.Println(src, dst, did, status)
+		if status == "ANSWERED" {
+			answeredid = append(answeredid, uid)
+		} else {
+			if notcontain(answeredid, uid) && notcontain(addedid, uid) && did != "" {
+				addedid = append(addedid, uid)
+				result = append(result, Missed{uid: uid, Did: did, dst: dst, staus: status, Src: src})
+			}
 		}
 	}
 	db.Close()
