@@ -41,6 +41,7 @@ type Did struct {
 // GetConfig открывает указанный файл и загружает конфиг
 // удобном для себя формате
 func GetConfig(configFile string) (*Config, error) {
+	log.Println("GetConfig", configFile)
 	result := new(Config)
 	conf, err := ioutil.ReadFile(configFile)
 	if err != nil {
@@ -52,5 +53,6 @@ func GetConfig(configFile string) (*Config, error) {
 		log.Println(err.Error())
 		return result, err
 	}
+	log.Printf("%#v\n", result)
 	return result, nil
 }

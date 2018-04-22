@@ -20,6 +20,8 @@ type Notify struct {
 }
 
 func Init(token, proxy, sms string, smsurl *config.SMSUrl) (*Notify, error) {
+	log.Println("Init notification")
+	log.Println(sms, proxy)
 	httpProxy, err := url.Parse(proxy)
 	if err != nil {
 		log.Println(err.Error())
@@ -29,34 +31,61 @@ func Init(token, proxy, sms string, smsurl *config.SMSUrl) (*Notify, error) {
 	bot, err := tgbotapi.NewBotAPIWithClient(token, httpClient)
 	if err != nil {
 		log.Println(err.Error())
-		return &Notify{client: httpClient, smsurl: smsurl, sms: sms}, err
+		result := &Notify{client: httpClient, smsurl: smsurl, sms: sms}
+		log.Println(result)
+		return result, err
 	}
-	return &Notify{client: httpClient, bot: bot, smsurl: smsurl, sms: sms}, nil
+	result := &Notify{client: httpClient, bot: bot, smsurl: smsurl, sms: sms}
+	log.Println(result)
+	return result, nil
 }
 
 func (n *Notify) SendSMS(calls []asterisk.Missed, dids []config.Did) {
-	for _, call := range calls {
-		for _, did := range dids {
-			if call.Did == did.Number {
-				for _, user := range did.Users {
-					if len(user.Phone) == 11 {
-						msg := fmt.Sprintf(n.sms, call.Src)
-						request := &url.URL{Path: fmt.Sprintf(n.smsurl.Url, user.Phone, msg)}
-						http.Get(request.String())
+	log.Println("SendSMS")
+	if n.smsurl.Type == "GET" {
+		for _, call := range calls {
+			for _, did := range dids {
+				if call.Did == did.Number {
+					for _, user := range did.Users {
+						if len(user.Phone) == 11 {
+							msg := fmt.Sprintf(n.sms, call.Src)
+							log.Println(msg)
+							request := &url.URL{Path: fmt.Sprintf(n.smsurl.Url, user.Phone, msg)}
+							log.Println(request.String())
+							http.Get(request.String())
+						}
 					}
 				}
 			}
 		}
-	}
+	} //else {
+	// 	for _, call := range calls {
+	// 		for _, did := range dids {
+	// 			if call.Did == did.Number {
+	// 				for _, user := range did.Users {
+	// 					if len(user.Phone) == 11 {
+	// 						msg := fmt.Sprintf(n.sms, call.Src)
+	// 						log.Println(msg)
+	// 						request := &url.URL{Path: fmt.Sprintf(n.smsurl.Url, user.Phone, msg)}
+	// 						log.Println(request.String())
+	// 						http.Post(request.String())
+	// 					}
+	// 				}
+	// 			}
+	// 		}
+	// 	}
+	// }
 }
 
 func (n *Notify) SendTG(calls []asterisk.Missed, dids []config.Did) {
+	log.Println("SendTG")
 	for _, call := range calls {
 		for _, did := range dids {
 			if call.Did == did.Number {
 				for _, user := range did.Users {
 					if user.Tgid != 0 {
 						msg := tgbotapi.NewMessage(user.Tgid, fmt.Sprintf(n.sms, call.Src))
+						log.Println(msg)
 						n.bot.Send(msg)
 					}
 				}

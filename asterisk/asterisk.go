@@ -21,6 +21,7 @@ type Missed struct {
 // Load подключается к базе и загружает информацию по
 // пропущенным звонкам звонкам
 func Load(conf string) []Missed {
+	log.Println("Load", conf)
 	result := []Missed{}
 	tmp := []Missed{}
 	db, err := sqlx.Open("mysql", conf)
@@ -29,7 +30,9 @@ func Load(conf string) []Missed {
 		return result
 	}
 	now := time.Now()
-	minuteago := now.Add(time.Duration(-60))
+	log.Println("now =", now)
+	minuteago := now.Add(time.Duration(-60000000000))
+	log.Println("minuteago =", minuteago)
 	db.Select(&tmp, "SELECT src,dst,did,uniqueid,disposition FROM cdr WHERE calldate > $1 AND did != '' order by disposition DESC", minuteago)
 	answeredid := []string{}
 	addedid := []string{}
@@ -45,6 +48,7 @@ func Load(conf string) []Missed {
 		}
 	}
 	db.Close()
+	log.Printf("%#v\n", result)
 	return result
 }
 
