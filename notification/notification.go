@@ -7,6 +7,8 @@ import (
 
 	"fmt"
 
+	"strings"
+
 	"github.com/Ravillatypov/missedcall/asterisk"
 	"github.com/Ravillatypov/missedcall/config"
 	"gopkg.in/telegram-bot-api.v4"
@@ -42,6 +44,9 @@ func Init(token, proxy, sms string, smsurl *config.SMSUrl) (*Notify, error) {
 
 func (n *Notify) SendSMS(calls []asterisk.Missed, dids []config.Did) {
 	log.Println("SendSMS")
+	if len(calls) == 0 || n.smsurl != nil {
+		return
+	}
 	if n.smsurl.Type == "GET" {
 		for _, call := range calls {
 			for _, did := range dids {
@@ -50,9 +55,15 @@ func (n *Notify) SendSMS(calls []asterisk.Missed, dids []config.Did) {
 						if len(user.Phone) == 11 {
 							msg := fmt.Sprintf(n.sms, call.Src)
 							log.Println(msg)
-							request := &url.URL{Path: fmt.Sprintf(n.smsurl.Url, user.Phone, msg)}
-							log.Println(request.String())
-							http.Get(request.String())
+							request := fmt.Sprintf(n.smsurl.Url, user.Phone, msg)
+							request = strings.Replace(request, " ", "+", -1)
+							log.Println(request)
+							resp, err := http.Get(request)
+							if err != nil {
+								log.Println(err.Error())
+							} else {
+								resp.Body.Close()
+							}
 						}
 					}
 				}
@@ -79,6 +90,9 @@ func (n *Notify) SendSMS(calls []asterisk.Missed, dids []config.Did) {
 
 func (n *Notify) SendTG(calls []asterisk.Missed, dids []config.Did) {
 	log.Println("SendTG")
+	if len(calls) == 0 || n.bot == nil {
+		return
+	}
 	for _, call := range calls {
 		for _, did := range dids {
 			if call.Did == did.Number {

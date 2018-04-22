@@ -16,7 +16,7 @@ func main() {
 		return
 	}
 	missedcalls := asterisk.Load(cfg.Dbconfig)
-	notify, err := notification.Init(cfg.Token, cfg.Proxy, "звонок от {}", &cfg.Smsurl)
+	notify, err := notification.Init(cfg.Token, cfg.Proxy, "звонок от %s", &cfg.Smsurl)
 	if err != nil {
 		log.Panic(err.Error())
 	}
