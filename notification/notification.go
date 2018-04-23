@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 	"net/url"
+	"time"
 
 	"fmt"
 
@@ -58,6 +59,7 @@ func (n *Notify) SendSMS(calls []asterisk.Missed, dids []config.Did, users []use
 						log.Println(msg)
 						request := strings.Replace(n.smsurl, "__PHONE__", user.Phone, -1)
 						request = strings.Replace(request, "__MESSAGE__", msg, -1)
+						request = strings.Replace(request, "+", "%2B", -1)
 						request = strings.Replace(request, " ", "+", -1)
 						log.Println(request)
 						resp, err := http.Get(request)
@@ -69,6 +71,7 @@ func (n *Notify) SendSMS(calls []asterisk.Missed, dids []config.Did, users []use
 							log.Println(string(bytes))
 							resp.Body.Close()
 						}
+						time.Sleep(time.Duration(1000000000))
 					}
 				}
 			}
