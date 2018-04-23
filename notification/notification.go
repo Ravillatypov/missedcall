@@ -55,7 +55,8 @@ func (n *Notify) SendSMS(calls []asterisk.Missed, dids []config.Did) {
 						if len(user.Phone) == 11 {
 							msg := fmt.Sprintf(n.sms, call.Src)
 							log.Println(msg)
-							request := fmt.Sprintf(n.smsurl.Url, user.Phone, msg)
+							request := strings.Replace(n.smsurl.Url, "__PHONE__", user.Phone, -1)
+							request = strings.Replace(request, "__MESSAGE__", msg, -1)
 							request = strings.Replace(request, " ", "+", -1)
 							log.Println(request)
 							resp, err := http.Get(request)
@@ -69,23 +70,7 @@ func (n *Notify) SendSMS(calls []asterisk.Missed, dids []config.Did) {
 				}
 			}
 		}
-	} //else {
-	// 	for _, call := range calls {
-	// 		for _, did := range dids {
-	// 			if call.Did == did.Number {
-	// 				for _, user := range did.Users {
-	// 					if len(user.Phone) == 11 {
-	// 						msg := fmt.Sprintf(n.sms, call.Src)
-	// 						log.Println(msg)
-	// 						request := &url.URL{Path: fmt.Sprintf(n.smsurl.Url, user.Phone, msg)}
-	// 						log.Println(request.String())
-	// 						http.Post(request.String())
-	// 					}
-	// 				}
-	// 			}
-	// 		}
-	// 	}
-	// }
+	}
 }
 
 func (n *Notify) SendTG(calls []asterisk.Missed, dids []config.Did) {

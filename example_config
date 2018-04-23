@@ -1,7 +1,7 @@
 {
 	"token": "telegram token", 
 	"db_config": "root@/asteriskcdr", 
-	"smsurl": {"url" : "http://smscemtr.com/?u=admin&p=admin&l=1&n={}&m={}", "type" : "GET"}, 
+	"smsurl": {"url" : "http://smscemtr.com/?u=admin&p=admin&l=1&n=__PHONE__&m=__MESSAGE__", "type" : "GET"}, 
 	"proxy": "socks5://mysocks5.org:1080", 
 	"did_numbers":[
 		{
