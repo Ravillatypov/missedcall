@@ -54,10 +54,10 @@ func (u *UserList) UserByName(name string) User {
 // SetChatID установить chat_id по tgname
 func (u *UserList) SetChatID(tgname string, chatid int64) {
 	log.Printf("SetChatID: name=%s\tchat_id=%d\n", tgname, chatid)
-	for _, user := range u.List {
-		if user.Tgusername == tgname {
-			user.Tgid = chatid
-			log.Printf("%#v\n", user)
+	for i, _ := range u.List {
+		if u.List[i].Tgusername == tgname {
+			u.List[i].Tgid = chatid
+			log.Printf("%#v\n", u.List[i])
 		}
 	}
 }
