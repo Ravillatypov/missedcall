@@ -45,9 +45,10 @@ func Init(token, proxy, sms string, smsurl string) (*Notify, error) {
 
 func (n *Notify) SendSMS(calls []asterisk.Missed, dids []config.Did, users []userlist.User) {
 	log.Println("SendSMS")
-	if len(calls) == 0 || n.smsurl != "" {
+	if len(calls) == 0 || n.smsurl == "" {
 		return
 	}
+	log.Printf("calls: %#v\ndids: %#v\nusers: %#v\n", calls, dids, users)
 	for _, call := range calls {
 		for _, did := range dids {
 			if call.Did == did.Number {
@@ -106,18 +107,16 @@ func contain(slice []string, item string) bool {
 	return false
 }
 
-func (n *Notify) Updates() []userlist.User {
-	users := make([]userlist.User, 0)
+func (n *Notify) Updates(ulist *userlist.UserList) {
 	u := tgbotapi.NewUpdate(0)
-	u.Timeout = 60
+	u.Timeout = 10
 	updates, err := n.Bot.GetUpdatesChan(u)
 	if err != nil {
 		log.Println(err.Error())
 	}
 	for update := range updates {
 		if update.Message != nil {
-			users = append(users, userlist.User{Tgusername: update.Message.Chat.UserName, Tgid: update.Message.Chat.ID})
+			ulist.SetChatID(update.Message.Chat.UserName, update.Message.Chat.ID)
 		}
 	}
-	return users
 }

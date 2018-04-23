@@ -1,14 +1,14 @@
 {
 	"token": "telegram token", 
 	"db_config": "root@/asteriskcdr", 
-	"smsurl": {"url" : "http://smscemtr.com/?u=admin&p=admin&l=1&n=__PHONE__&m=__MESSAGE__", "type" : "GET"}, 
+	"smsurl": "http://smscemtr.com/?u=admin&p=admin&l=1&n=__PHONE__&m=__MESSAGE__", 
 	"proxy": "socks5://mysocks5.org:1080",
 	"sms_template": "Пропущенный звонок с номера %s",
 	"users_file": "/etc/missedcall/users",
 	"did_numbers":[
 		{
 		"number": "78912345678",
-		"users" : ["ravil", "michail"]
+		"users" : ["Ravil", "Michail"]
 		}
     ]
 }

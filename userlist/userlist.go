@@ -41,8 +41,10 @@ func LoadUsers(usersFile string) (*UserList, error) {
 
 // UserByName найти пользователя по имени
 func (u *UserList) UserByName(name string) User {
+	log.Printf("UserByName: %s", name)
 	for _, user := range u.List {
 		if user.Name == name {
+			log.Println(user)
 			return user
 		}
 	}
@@ -51,9 +53,11 @@ func (u *UserList) UserByName(name string) User {
 
 // SetChatID установить chat_id по tgname
 func (u *UserList) SetChatID(tgname string, chatid int64) {
+	log.Printf("SetChatID: name=%s\tchat_id=%d\n", tgname, chatid)
 	for _, user := range u.List {
 		if user.Tgusername == tgname {
 			user.Tgid = chatid
+			log.Printf("%#v\n", user)
 		}
 	}
 }
