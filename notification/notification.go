@@ -11,17 +11,18 @@ import (
 
 	"github.com/Ravillatypov/missedcall/asterisk"
 	"github.com/Ravillatypov/missedcall/config"
+	"github.com/Ravillatypov/missedcall/userlist"
 	"gopkg.in/telegram-bot-api.v4"
 )
 
 type Notify struct {
 	client *http.Client
-	bot    *tgbotapi.BotAPI
-	smsurl *config.SMSUrl
+	Bot    *tgbotapi.BotAPI
+	smsurl string
 	sms    string
 }
 
-func Init(token, proxy, sms string, smsurl *config.SMSUrl) (*Notify, error) {
+func Init(token, proxy, sms string, smsurl string) (*Notify, error) {
 	log.Println("Init notification")
 	log.Println(sms, proxy)
 	httpProxy, err := url.Parse(proxy)
@@ -37,55 +38,57 @@ func Init(token, proxy, sms string, smsurl *config.SMSUrl) (*Notify, error) {
 		log.Println(result)
 		return result, err
 	}
-	result := &Notify{client: httpClient, bot: bot, smsurl: smsurl, sms: sms}
+	result := &Notify{client: httpClient, Bot: bot, smsurl: smsurl, sms: sms}
 	log.Println(result)
 	return result, nil
 }
 
-func (n *Notify) SendSMS(calls []asterisk.Missed, dids []config.Did) {
+func (n *Notify) SendSMS(calls []asterisk.Missed, dids []config.Did, users []userlist.User) {
 	log.Println("SendSMS")
-	if len(calls) == 0 || n.smsurl != nil {
+	if len(calls) == 0 || n.smsurl != "" {
 		return
 	}
-	if n.smsurl.Type == "GET" {
-		for _, call := range calls {
-			for _, did := range dids {
-				if call.Did == did.Number {
-					for _, user := range did.Users {
-						if len(user.Phone) == 11 {
-							msg := fmt.Sprintf(n.sms, call.Src)
-							log.Println(msg)
-							request := strings.Replace(n.smsurl.Url, "__PHONE__", user.Phone, -1)
-							request = strings.Replace(request, "__MESSAGE__", msg, -1)
-							request = strings.Replace(request, " ", "+", -1)
-							log.Println(request)
-							resp, err := http.Get(request)
-							if err != nil {
-								log.Println(err.Error())
-							} else {
-								resp.Body.Close()
-							}
+	for _, call := range calls {
+		for _, did := range dids {
+			if call.Did == did.Number {
+				for _, user := range users {
+					if contain(did.Users, user.Name) && len(user.Phone) == 11 {
+						msg := fmt.Sprintf(n.sms, call.Src)
+						log.Println(msg)
+						request := strings.Replace(n.smsurl, "__PHONE__", user.Phone, -1)
+						request = strings.Replace(request, "__MESSAGE__", msg, -1)
+						request = strings.Replace(request, " ", "+", -1)
+						log.Println(request)
+						resp, err := http.Get(request)
+						if err != nil {
+							log.Println(err.Error())
+						} else {
+							bytes := make([]byte, 0)
+							resp.Body.Read(bytes)
+							log.Println(string(bytes))
+							resp.Body.Close()
 						}
 					}
 				}
 			}
 		}
 	}
+
 }
 
-func (n *Notify) SendTG(calls []asterisk.Missed, dids []config.Did) {
+func (n *Notify) SendTG(calls []asterisk.Missed, dids []config.Did, users []userlist.User) {
 	log.Println("SendTG")
-	if len(calls) == 0 || n.bot == nil {
+	if len(calls) == 0 || n.Bot == nil {
 		return
 	}
 	for _, call := range calls {
 		for _, did := range dids {
 			if call.Did == did.Number {
-				for _, user := range did.Users {
-					if user.Tgid != 0 {
+				for _, user := range users {
+					if contain(did.Users, user.Name) && user.Tgid != 0 {
 						msg := tgbotapi.NewMessage(user.Tgid, fmt.Sprintf(n.sms, call.Src))
 						log.Println(msg)
-						n.bot.Send(msg)
+						n.Bot.Send(msg)
 					}
 				}
 			}
@@ -94,3 +97,27 @@ func (n *Notify) SendTG(calls []asterisk.Missed, dids []config.Did) {
 }
 
 //func (n *Notify) SendTG(calls []asterisk.Missed, dids []config.Did) error {}
+func contain(slice []string, item string) bool {
+	for _, it := range slice {
+		if it == item {
+			return true
+		}
+	}
+	return false
+}
+
+func (n *Notify) Updates() []userlist.User {
+	users := make([]userlist.User, 0)
+	u := tgbotapi.NewUpdate(0)
+	u.Timeout = 60
+	updates, err := n.Bot.GetUpdatesChan(u)
+	if err != nil {
+		log.Println(err.Error())
+	}
+	for update := range updates {
+		if update.Message != nil {
+			users = append(users, userlist.User{Tgusername: update.Message.Chat.UserName, Tgid: update.Message.Chat.ID})
+		}
+	}
+	return users
+}

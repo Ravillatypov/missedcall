@@ -10,6 +10,7 @@ import (
 	"github.com/Ravillatypov/missedcall/asterisk"
 	"github.com/Ravillatypov/missedcall/config"
 	"github.com/Ravillatypov/missedcall/notification"
+	"github.com/Ravillatypov/missedcall/userlist"
 )
 
 func main() {
@@ -28,10 +29,21 @@ func main() {
 		sec = -60
 	}
 	missedcalls := asterisk.Load(cfg.Dbconfig, sec)
-	notify, err := notification.Init(cfg.Token, cfg.Proxy, "звонок от %s", &cfg.Smsurl)
+	notify, err := notification.Init(cfg.Token, cfg.Proxy, cfg.Sms, cfg.Smsurl)
 	if err != nil {
 		log.Println(err.Error())
 	}
-	notify.SendSMS(missedcalls, cfg.Dids)
-	notify.SendTG(missedcalls, cfg.Dids)
+	userlst, err := userlist.LoadUsers(cfg.Users)
+	if err != nil {
+		log.Println(err.Error())
+		os.Exit(-2)
+	}
+	if notify.Bot != nil {
+		for _, tguser := range notify.Updates() {
+			userlst.SetChatID(tguser.Tgusername, tguser.Tgid)
+		}
+	}
+	notify.SendSMS(missedcalls, cfg.Dids, userlst.List)
+	notify.SendTG(missedcalls, cfg.Dids, userlst.List)
+	userlst.Save()
 }
