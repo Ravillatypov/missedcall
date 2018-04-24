@@ -27,10 +27,15 @@ func main() {
 		log.Panicln(err.Error())
 		return
 	}
-	sec, err := strconv.ParseInt(os.Args[2], 10, 64)
-	log.Println("After ParseInt")
-	if err != nil {
-		log.Println(err.Error())
+	var sec int64
+	if len(os.Args) == 3 {
+		sec, err := strconv.ParseInt(os.Args[2], 10, 64)
+		log.Println("After ParseInt")
+		if err != nil {
+			log.Println(err.Error())
+			sec = -60
+		}
+	} else {
 		sec = -60
 	}
 	missedcalls := asterisk.Load(cfg.Dbconfig, sec)
