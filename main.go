@@ -5,8 +5,6 @@ import (
 	"log"
 	"os"
 
-	"strconv"
-
 	"time"
 
 	"github.com/Ravillatypov/missedcall/asterisk"
@@ -18,7 +16,7 @@ import (
 func main() {
 	log.Println("Start")
 	if len(os.Args) < 2 {
-		fmt.Printf("Usage:\n%s config_file [seconds]", os.Args[0])
+		fmt.Printf("Usage:\n%s <config_file>", os.Args[0])
 		os.Exit(-1)
 	}
 	cfg, err := config.GetConfig(os.Args[1])
@@ -27,18 +25,7 @@ func main() {
 		log.Panicln(err.Error())
 		return
 	}
-	var sec int64
-	if len(os.Args) == 3 {
-		sec, err := strconv.ParseInt(os.Args[2], 10, 64)
-		log.Println("After ParseInt")
-		if err != nil {
-			log.Println(err.Error())
-			sec = -60
-		}
-	} else {
-		sec = -60
-	}
-	missedcalls := asterisk.Load(cfg.Dbconfig, sec)
+	missedcalls := asterisk.Load(cfg.Dbconfig, cfg.Period)
 	log.Println("After Load")
 	notify, err := notification.Init(cfg.Token, cfg.Proxy, cfg.Sms, cfg.Smsurl)
 	log.Println("After Init")
