@@ -10,5 +10,6 @@
 		"number": "78912345678",
 		"users" : ["Ravil", "Michail"]
 		}
-    ]
+    ],
+	"period_sec": 60
 }

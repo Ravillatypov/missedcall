@@ -17,6 +17,7 @@ type Config struct {
 	Proxy    string `json:"proxy"`
 	Users    string `json:"users_file"`
 	Sms      string `json:"sms_template"`
+	Period   int64  `json:"period_sec"`
 }
 
 // Did триггер, при вызове этого номера отправляются
