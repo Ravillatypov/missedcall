@@ -93,6 +93,10 @@ func (n *Notify) SendTG(calls []asterisk.Missed, dids []config.Did, users []user
 						msg := tgbotapi.NewMessage(user.Tgid, fmt.Sprintf(n.sms, call.Src))
 						log.Println(msg)
 						n.Bot.Send(msg)
+						if call.IsVoiceMail() {
+							voice := tgbotapi.NewVoiceUpload(user.Tgid, call.GetFilePath())
+							n.Bot.Send(voice)
+						}
 					}
 				}
 			}
