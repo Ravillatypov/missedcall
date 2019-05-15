@@ -44,7 +44,7 @@ func Load(conf string, sec int64) []Missed {
 	minuteago := now.Add(time.Duration(-sec * 1000000000))
 	query := fmt.Sprintf(`SELECT uniqueid, src, dst, did, disposition, recordingfile 
 						  FROM cdr WHERE calldate > '%s' AND did != ''
-						  AND is_notify IS NOT NULL`, minuteago.Format("2006-01-02 15:04:05"))
+						  AND is_notify IS NULL`, minuteago.Format("2006-01-02 15:04:05"))
 	log.Println(query)
 	addedid := []string{}
 	rows, err := db.Query(query)
