@@ -41,17 +41,16 @@ func Load(conf string, sec int64) []Missed {
 	db := sql.OpenDB(connector)
 
 	now := time.Now()
-	log.Println("now =", now)
 	minuteago := now.Add(time.Duration(-sec * 1000000000))
-	log.Println("minuteago =", minuteago)
 	query := fmt.Sprintf(`SELECT uniqueid, src, dst, did, disposition, recordingfile 
-						  FROM cdr WHERE calldate > '%s' AND did != ''`, minuteago.Format("2006-01-02 15:04:05"))
+						  FROM cdr WHERE calldate > '%s' AND did != ''
+						  AND is_notify IS NOT NULL`, minuteago.Format("2006-01-02 15:04:05"))
 	log.Println(query)
 	addedid := []string{}
 	rows, err := db.Query(query)
 	if err != nil {
 		log.Println(err.Error())
-		return []Missed{}
+		return result
 	}
 	for rows.Next() {
 		var call Missed
@@ -70,7 +69,11 @@ func Load(conf string, sec int64) []Missed {
 			addedid = append(addedid, call.Uid)
 			result = append(result, call)
 		}
-
+	}
+	_, err = db.Query(fmt.Sprintf(`UPDATE cdr SET is_notify=1 WHERE uniqueid in (%s)`, strings.Join(addedid, ",")))
+	if err != nil {
+		log.Println(err.Error())
+		return result
 	}
 	db.Close()
 	log.Printf("%#v\n", result)
