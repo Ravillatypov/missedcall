@@ -92,12 +92,15 @@ func (n *Notify) SendTG(calls []asterisk.Missed, dids []config.Did, users []user
 					n.Bot.Send(voice)
 				} else {
 					if !contain(numbers, call.Src) {
-						numbers = append(numbers, "+" + call.Src)
+						numbers = append(numbers, "+"+call.Src)
 					}
 				}
 			}
-			msg := tgbotapi.NewMessage(user.Tgid, fmt.Sprintf(n.sms, strings.Join(numbers, ", ")))
-			n.Bot.Send(msg)
+			if len(numbers) > 0 {
+				nums := "\n" + strings.Join(numbers, "\n")
+				msg := tgbotapi.NewMessage(user.Tgid, fmt.Sprintf(n.sms, nums))
+				n.Bot.Send(msg)
+			}
 		}
 	}
 }
