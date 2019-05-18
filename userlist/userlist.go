@@ -17,13 +17,13 @@ type User struct {
 
 // UserList список всех пользователей
 type UserList struct {
-	Fname string `json:"filename"`
-	List  []User `json:"users"`
+	Fname   string `json:"filename"`
+	List    []User `json:"users"`
+	changed bool
 }
 
 // LoadUsers загружает пользователей из файла
 func LoadUsers(usersFile string) (*UserList, error) {
-	log.Println("Load Users", usersFile)
 	userlist := &UserList{}
 	file, err := ioutil.ReadFile(usersFile)
 	if err != nil {
@@ -41,7 +41,6 @@ func LoadUsers(usersFile string) (*UserList, error) {
 
 // UserByName найти пользователя по имени
 func (u *UserList) UserByName(name string) User {
-	log.Printf("UserByName: %s", name)
 	for _, user := range u.List {
 		if user.Name == name {
 			log.Println(user)
@@ -53,10 +52,10 @@ func (u *UserList) UserByName(name string) User {
 
 // SetChatID установить chat_id по tgname
 func (u *UserList) SetChatID(tgname string, chatid int64) {
-	log.Printf("SetChatID: name=%s\tchat_id=%d\n", tgname, chatid)
 	for i, _ := range u.List {
-		if u.List[i].Tgusername == tgname {
+		if u.List[i].Tgusername == tgname && u.List[i].Tgid != chatid {
 			u.List[i].Tgid = chatid
+			u.changed = true
 			log.Printf("%#v\n", u.List[i])
 		}
 	}
@@ -64,7 +63,9 @@ func (u *UserList) SetChatID(tgname string, chatid int64) {
 
 // Save сохраняет пользователей в файл
 func (u *UserList) Save() error {
-	log.Println("Save users", u.Fname)
+	if !u.changed {
+		return nil
+	}
 	bytes, err := json.Marshal(u)
 	if err != nil {
 		log.Println(err.Error())
