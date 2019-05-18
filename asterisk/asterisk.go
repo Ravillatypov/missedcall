@@ -2,7 +2,6 @@ package asterisk
 
 import (
 	"database/sql"
-	"fmt"
 	"log"
 	"strings"
 	"time"
@@ -23,7 +22,6 @@ type Missed struct {
 // Load подключается к базе и загружает информацию по
 // пропущенным звонкам
 func Load(conf string, sec int64) []Missed {
-	log.Println("Load", conf)
 	result := make([]Missed, 0)
 
 	config, err := mysql.ParseDSN(conf)
@@ -39,13 +37,8 @@ func Load(conf string, sec int64) []Missed {
 	}
 
 	db := sql.OpenDB(connector)
-
-	now := time.Now()
-	minuteago := now.Add(time.Duration(-sec * 1000000000))
-	query := fmt.Sprintf(`SELECT uniqueid, src, dst, did, disposition, recordingfile 
-						  FROM cdr WHERE calldate > '%s' AND did != ''
-						  AND is_notify IS NOT NULL`, minuteago.Format("2006-01-02 15:04:05"))
-	log.Println(query)
+	query := `SELECT uniqueid, src, dst, did, disposition, recordingfile FROM cdr WHERE 
+	calldate BETWEEN NOW() - INTERVAL 2 MINUTE AND NOW() - INTERVAL 1 MINUTE AND did != ''`
 	addedid := []string{}
 	rows, err := db.Query(query)
 	if err != nil {
@@ -70,13 +63,8 @@ func Load(conf string, sec int64) []Missed {
 			result = append(result, call)
 		}
 	}
-	_, err = db.Query(fmt.Sprintf(`UPDATE cdr SET is_notify=1 WHERE uniqueid in (%s)`, strings.Join(addedid, ",")))
-	if err != nil {
-		log.Println(err.Error())
-		return result
-	}
 	db.Close()
-	log.Printf("%#v\n", result)
+	log.Printf("calls result:\n%#v\n", result)
 	return result
 }
 
