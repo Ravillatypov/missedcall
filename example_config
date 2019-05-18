@@ -3,7 +3,8 @@
 	"db_config": "root@/asteriskcdr", 
 	"smsurl": "http://smscemtr.com/?u=admin&p=admin&l=1&n=__PHONE__&m=__MESSAGE__", 
 	"proxy": "socks5://mysocks5.org:1080",
-	"sms_template": "Пропущенный звонок с номера %s",
+	"sms_template": "Пропущенные звонки:\n %s",
+	"voicemail_template": "Сообщение с номера %s",
 	"users_file": "/etc/missedcall/users",
 	"did_numbers":[
 		{

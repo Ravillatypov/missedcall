@@ -17,6 +17,7 @@ type Config struct {
 	Proxy    string `json:"proxy"`
 	Users    string `json:"users_file"`
 	Sms      string `json:"sms_template"`
+	Voice    string `json:"voicemail_template"`
 	Period   int64  `json:"period_sec"`
 }
 
@@ -30,7 +31,6 @@ type Did struct {
 // GetConfig открывает указанный файл и загружает конфиг
 // удобном для себя формате
 func GetConfig(configFile string) (*Config, error) {
-	log.Println("GetConfig", configFile)
 	result := new(Config)
 	conf, err := ioutil.ReadFile(configFile)
 	if err != nil {
@@ -42,6 +42,6 @@ func GetConfig(configFile string) (*Config, error) {
 		log.Println(err.Error())
 		return result, err
 	}
-	log.Printf("%#v\n", result)
+	log.Printf("loaded config:\n%#v\n", result)
 	return result, nil
 }
